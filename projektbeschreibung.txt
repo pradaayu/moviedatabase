@@ -1,0 +1,176 @@
+# Film- und Serienplattform: Eine OMDB-basierte Webanwendung
+
+## Projektübersicht
+
+Unsere Webanwendung stellt eine moderne Plattform zur Verfügung, die es Benutzern ermöglicht, Filme und Fernsehserien zu erkunden und zu verwalten. Das System nutzt die OMDB (Open Movie Database) API als primäre Datenquelle und bietet sowohl Gästen als auch registrierten Benutzern ein umfassendes Filmerlebnis. Die Plattform zeichnet sich durch ihre intuitive Benutzeroberfläche und effiziente Backend-Architektur aus.
+
+## Technologischer Stack und Architekturübersicht
+
+### Frontend-Technologien
+
+Unser Frontend basiert auf React, einer der führenden JavaScript-Bibliotheken für Benutzeroberflächen. Die Entscheidung für React wurde aufgrund folgender Vorteile getroffen:
+
+- Komponenten-basierte Architektur für bessere Wartbarkeit
+- Virtuelle DOM-Implementierung für optimale Leistung
+- Große Community und umfangreiche Ressourcen
+
+Die Integration von TypeScript erhöht die Codequalität durch:
+- Statische Typisierung für frühzeitige Fehlererkennung
+- Verbesserte Entwicklererfahrung mit IDE-Unterstützung
+- Erhöhte Wartbarkeit durch klare Typendefinitionen
+
+### Backend-Technologien
+
+Das Backend wurde mit Java und dem Undertow-Server entwickelt, einer Kombination, die sich durch hohe Leistung und Zuverlässigkeit auszeichnet:
+
+- Java bietet eine robuste und bewährte Entwicklungsumgebung
+- Undertow gewährleistet als leichtgewichtiger Server optimale Performance
+- JPA mit Hibernate ermöglicht effiziente Datenbankoperationen
+
+### Datenbankarchitektur
+
+Unsere Datenbanklösung verwendet einen zweigleisigen Ansatz:
+
+Entwicklungsumgebung:
+- H2 Datenbank für schnelle Entwicklung und Tests
+- Eingebetteter Modus für vereinfachtes Setup
+- Automatische Schema-Generation
+
+Produktionsumgebung:
+- PostgreSQL für robuste Datenspeicherung
+- Skalierbare Architektur für wachsende Datenmengen
+- Bewährte Leistung in Produktionsumgebungen
+
+## Detaillierte Benutzergeschichten
+
+### Medienexploration und Suche
+
+Als Benutzer der Plattform möchte ich Medieninhalte auf verschiedene Weisen erkunden können. Dies beinhaltet:
+
+Die Listendarstellung:
+"Als Benutzer möchte ich eine übersichtliche Liste von Filmen und Serien sehen, damit ich neue Inhalte entdecken kann."
+- Das System zeigt eine paginierte Liste von Medieninhalten
+- Jeder Eintrag zeigt Basisinformationen wie Titel, Jahr und Bewertung
+- Die Liste lädt dynamisch weitere Inhalte beim Scrollen
+
+Die Detailansicht:
+"Als Benutzer möchte ich umfassende Informationen zu einzelnen Titeln einsehen können."
+- Vollständige Beschreibung des Inhalts
+- Technische Details und Metadaten
+- Cast- und Crew-Informationen
+- Bewertungen und Kritiken
+
+Die Suchfunktion:
+"Als Benutzer möchte ich gezielt nach bestimmten Titeln suchen können."
+- Echtzeit-Suchvorschläge während der Eingabe
+- Flexible Suche nach Titel, Schauspieler oder Regisseur
+- Hervorgehobene Treffermarkierung in den Ergebnissen
+
+### Benutzerverwaltung und Authentifizierung
+
+Die Benutzerverwaltung umfasst sowohl die Gastnutzung als auch registrierte Mitgliedschaften:
+
+Registrierung:
+"Als Gast möchte ich ein Benutzerkonto erstellen können."
+- Einrichtung mit E-Mail und Passwort
+- Validierung der Eingaben
+- Bestätigungsprozess per E-Mail
+- Sichere Passwortspeicherung
+
+Anmeldung:
+"Als registrierter Benutzer möchte ich mich in mein Konto einloggen können."
+- Schnelle Anmeldung mit E-Mail und Passwort
+- Option zum "Angemeldet bleiben"
+- Passwort-Wiederherstellungsfunktion
+
+Profilverwaltung:
+"Als Mitglied möchte ich mein Profil verwalten können."
+- Aktualisierung persönlicher Informationen
+- Änderung des Passworts
+- Verwaltung von Benachrichtigungseinstellungen
+
+### Watchlist-Funktionalität
+
+Die Watchlist-Verwaltung steht registrierten Benutzern zur Verfügung:
+
+Watchlist-Erstellung:
+"Als Mitglied möchte ich Titel zu meiner Watchlist hinzufügen können."
+- Einfaches Hinzufügen mit einem Klick
+- Vermeidung von Duplikaten
+- Bestätigung der erfolgreichen Aufnahme
+
+Watchlist-Verwaltung:
+"Als Mitglied möchte ich meine Watchlist organisieren können."
+- Anzeige aller gespeicherten Titel
+- Sortier- und Filterfunktionen
+- Möglichkeit zur Kategorisierung
+
+Watchlist-Bearbeitung:
+"Als Mitglied möchte ich Einträge aus meiner Watchlist entfernen können."
+- Einzelnes oder mehrfaches Entfernen von Einträgen
+- Bestätigungsdialog vor dem Löschen
+- Rückgängig-Machen-Funktion
+
+## Technische Implementierungsdetails
+
+### Datenbankstruktur
+
+Die Datenbank verwendet folgendes Schemas:
+
+Benutzertabelle (users):
+- Eindeutige ID als Primärschlüssel
+- E-Mail-Adresse (unique)
+- Gehashtes Passwort
+- Erstellungsdatum
+- Letzte Anmeldung
+
+Watchlist-Tabelle (watchlists):
+- Eindeutige ID als Primärschlüssel
+- Benutzer-ID als Fremdschlüssel
+- Erstellungsdatum
+- Letztes Änderungsdatum
+
+Watchlist-Einträge (watchlist_items):
+- Eindeutige ID als Primärschlüssel
+- Watchlist-ID als Fremdschlüssel
+- OMDB-Film-ID
+- Hinzufügungsdatum
+
+### API-Integration
+
+Die OMDB-API-Integration erfolgt über:
+- RESTful-Endpunkte für Medienabfragen
+- Caching-Mechanismen zur Optimierung
+- Fehlerbehandlung und Ausfallsicherheit
+
+### Sicherheitsaspekte
+
+Die Anwendung implementiert verschiedene Sicherheitsmaßnahmen:
+- Verschlüsselte Passwortspeicherung mit BCrypt
+- JWT-basierte Authentifizierung
+- XSS-Prävention durch Input-Validierung
+- SQL-Injection-Schutz durch Prepared Statements
+- CORS-Konfiguration für API-Sicherheit
+
+## Entwicklungsphasen und Meilensteine
+
+### Phase 1: Grundlegende Infrastruktur
+- Einrichtung der Entwicklungsumgebung
+- Integration der OMDB-API
+- Implementierung der Basis-UI-Komponenten
+
+### Phase 2: Benutzerfunktionen
+- Entwicklung der Authentifizierungssysteme
+- Implementierung der Benutzerprofilverwaltung
+- Einrichtung der Datenbank
+
+### Phase 3: Watchlist-Management
+- Entwicklung der Watchlist-Funktionalität
+- Integration in die Benutzeroberfläche
+- Implementierung der Datenbankoperationen
+
+### Phase 4: Testing und Optimierung
+- Durchführung von Leistungstests
+- Optimierung der Datenbankabfragen
+- Verbesserung der Benutzeroberfläche
+- Fehlerbehebung und Feinabstimmung
