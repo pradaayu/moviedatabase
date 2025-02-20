@@ -111,6 +111,30 @@ Watchlist-Bearbeitung:
 - Bestätigungsdialog vor dem Löschen
 - Rückgängig-Machen-Funktion
 
+Bewertungen und Rezensionen
+Die Bewertungsfunktionalität ermöglicht Mitgliedern, ihre Meinung zu teilen:
+Bewertungsabgabe:
+"Als Mitglied möchte ich Filme und Serien bewerten und rezensieren können."
+
+Bewertungsskala von 1-10 Sternen
+Textuelle Rezension mit Mindestlänge
+Möglichkeit, Bewertungen zu bearbeiten oder zu löschen
+Anzeige des Durchschnitts aller Benutzerbewertungen neben der OMDB-Bewertung
+
+Bewertungsverwaltung:
+"Als Mitglied möchte ich meine abgegebenen Bewertungen einsehen und verwalten können."
+
+Übersicht aller eigenen Bewertungen
+Bearbeitungsmöglichkeit für bestehende Rezensionen
+Löschfunktion für eigene Bewertungen
+
+Bewertungsanzeige:
+"Als Benutzer möchte ich Bewertungen und Rezensionen anderer Mitglieder lesen können."
+
+Sortierung nach Datum oder Bewertungshöhe
+Filterung nach verifizierte Bewertungen
+Hilfreich-Markierung für Rezensionen
+
 ## Technische Implementierungsdetails
 
 ### Datenbankstruktur
@@ -135,6 +159,25 @@ Watchlist-Einträge (watchlist_items):
 - Watchlist-ID als Fremdschlüssel
 - OMDB-Film-ID
 - Hinzufügungsdatum
+
+Bewertungstabelle (ratings):
+
+Eindeutige ID als Primärschlüssel
+Benutzer-ID als Fremdschlüssel
+OMDB-Film-ID
+Bewertung (1-10)
+Rezensionstext
+Erstellungsdatum
+Letztes Änderungsdatum
+Status (aktiv/gelöscht)
+
+Rezensions-Hilfreich-Tabelle (review_helpful):
+
+Eindeutige ID als Primärschlüssel
+Bewertungs-ID als Fremdschlüssel
+Benutzer-ID als Fremdschlüssel
+Hilfreich-Markierung (Boolean)
+Datum
 
 ### API-Integration
 
