@@ -1,4 +1,4 @@
 ./backend/target/
 ./frontend/node_modules
 ./backend/dependency-reduced-pom.xml
-.env
+./backend/.env
