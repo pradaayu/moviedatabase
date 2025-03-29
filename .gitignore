@@ -2,3 +2,5 @@
 ./frontend/node_modules
 ./backend/dependency-reduced-pom.xml
 ./backend/.env
+./backend/src/main/resources/application.properties
+backend/.classpath
