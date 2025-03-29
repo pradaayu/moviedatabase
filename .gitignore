@@ -4,3 +4,4 @@
 ./backend/.env
 ./backend/src/main/resources/application.properties
 backend/.classpath
+backend/dependency-reduced-pom.xml
