@@ -45,8 +45,9 @@ public class DatabaseConnection {
 //    		stmt.execute(droputable);
     		String utable = "CREATE TABLE IF NOT EXISTS User"
     				  + "(id varchar(60) PRIMARY KEY, "
-    				  + "nickname varchar(50) NOT NULL, "
-    				  + "date_of_birth DATETIME)"
+    				  + "nickname varchar(255) NOT NULL, "
+    				  + "date_of_birth DATETIME, "
+    				  + "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) "
     				  ;
     		stmt.execute(utable);
     		
@@ -62,8 +63,8 @@ public class DatabaseConnection {
     				;
     		stmt.execute(reviewTable);
     		
-//    		String dropWatchlistTable = "DROP TABLE IF EXISTS UserMovie";
-//    		stmt.execute(dropWatchlistTable);
+    		String dropWatchlistTable = "DROP TABLE IF EXISTS UserMovie";
+    		stmt.execute(dropWatchlistTable);
     		String watchlistTable = "CREATE TABLE IF NOT EXISTS UserMovie"
     				+ "(id varchar(60) PRIMARY KEY, "
     				+ "user_id varchar(60) NOT NULL, "
@@ -78,10 +79,9 @@ public class DatabaseConnection {
     		String loginTable = "CREATE TABLE IF NOT EXISTS UserLogin"
     				+ "(id varchar(60) PRIMARY KEY, "
     				+ "user_id varchar(60) NOT NULL, "
-    				+ "email varchar(255) UNIQUE, "
+    				+ "email varchar(255) UNIQUE NOT NULL, "
     				+ "salt varchar(255) NOT NULL, "
     				+ "password varchar(255) NOT NULL, "
-    				+ "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
     				+ "FOREIGN KEY (user_id) REFERENCES User(id));"
     				;
     		stmt.execute(loginTable);
