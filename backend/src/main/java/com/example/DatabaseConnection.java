@@ -45,7 +45,7 @@ public class DatabaseConnection {
 //    		stmt.execute(droputable);
     		String utable = "CREATE TABLE IF NOT EXISTS User"
     				  + "(id varchar(60) PRIMARY KEY, "
-    				  + "nickname varchar(255) NOT NULL, "
+    				  + "name varchar(255) NOT NULL, "
     				  + "date_of_birth DATETIME, "
     				  + "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) "
     				  ;
@@ -55,16 +55,17 @@ public class DatabaseConnection {
 //    		stmt.execute(dropReviewTable);
     		String reviewTable = "CREATE TABLE IF NOT EXISTS UserReview"
     				+ "(id varchar(60) PRIMARY KEY, "
-    				+ "content MEDIUMTEXT, "
-    				+ "time_create DATETIME, "
-    				+ "time_update DATETIME, "
     				+ "user_id varchar(60) NOT NULL, "
+    				+ "content MEDIUMTEXT NOT NULL, "
+    				+ "rating TINYINT, "
+    				+ "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+    				+ "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, "
     				+ "FOREIGN KEY (user_id) REFERENCES User(id));"
     				;
     		stmt.execute(reviewTable);
     		
-    		String dropWatchlistTable = "DROP TABLE IF EXISTS UserMovie";
-    		stmt.execute(dropWatchlistTable);
+//    		String dropWatchlistTable = "DROP TABLE IF EXISTS UserMovie";
+//    		stmt.execute(dropWatchlistTable);
     		String watchlistTable = "CREATE TABLE IF NOT EXISTS UserMovie"
     				+ "(id varchar(60) PRIMARY KEY, "
     				+ "user_id varchar(60) NOT NULL, "
