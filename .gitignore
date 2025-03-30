@@ -6,3 +6,4 @@
 backend/.classpath
 backend/dependency-reduced-pom.xml
 /backend/src/main/resources
+/backend/target

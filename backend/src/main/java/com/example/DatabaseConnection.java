@@ -44,7 +44,7 @@ public class DatabaseConnection {
 //    		String droputable = "DROP TABLE IF EXISTS User";
 //    		stmt.execute(droputable);
     		String utable = "CREATE TABLE IF NOT EXISTS User"
-    				  + "(id varchar(60) PRIMARY KEY, "
+    				  + "(id varchar(12) PRIMARY KEY, "
     				  + "name varchar(255) NOT NULL, "
     				  + "date_of_birth DATETIME, "
     				  + "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) "
@@ -54,8 +54,8 @@ public class DatabaseConnection {
 //    		String dropReviewTable = "DROP TABLE IF EXISTS UserReview";
 //    		stmt.execute(dropReviewTable);
     		String reviewTable = "CREATE TABLE IF NOT EXISTS UserReview"
-    				+ "(id varchar(60) PRIMARY KEY, "
-    				+ "user_id varchar(60) NOT NULL, "
+    				+ "(id varchar(12) PRIMARY KEY, "
+    				+ "user_id varchar(12) NOT NULL, "
     				+ "content MEDIUMTEXT NOT NULL, "
     				+ "rating TINYINT, "
     				+ "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
@@ -67,8 +67,8 @@ public class DatabaseConnection {
 //    		String dropWatchlistTable = "DROP TABLE IF EXISTS UserMovie";
 //    		stmt.execute(dropWatchlistTable);
     		String watchlistTable = "CREATE TABLE IF NOT EXISTS UserMovie"
-    				+ "(id varchar(60) PRIMARY KEY, "
-    				+ "user_id varchar(60) NOT NULL, "
+    				+ "(id varchar(12) PRIMARY KEY, "
+    				+ "user_id varchar(12) NOT NULL, "
     				+ "movie_ref varchar(255) NOT NULL, "
     				+ "added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
     				+ "FOREIGN KEY (user_id) REFERENCES User(id) on DELETE CASCADE);"
@@ -78,10 +78,9 @@ public class DatabaseConnection {
 //    		String dropLoginTable = "DROP TABLE IF EXISTS UserLogin";
 //    		stmt.execute(dropLoginTable);
     		String loginTable = "CREATE TABLE IF NOT EXISTS UserLogin"
-    				+ "(id varchar(60) PRIMARY KEY, "
-    				+ "user_id varchar(60) NOT NULL, "
+    				+ "(id varchar(12) PRIMARY KEY, "
+    				+ "user_id varchar(12) NOT NULL, "
     				+ "email varchar(255) UNIQUE NOT NULL, "
-    				+ "salt varchar(255) NOT NULL, "
     				+ "password varchar(255) NOT NULL, "
     				+ "FOREIGN KEY (user_id) REFERENCES User(id));"
     				;
