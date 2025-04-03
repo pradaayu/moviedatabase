@@ -44,22 +44,35 @@ public class DatabaseConnection {
 //    		String droputable = "DROP TABLE IF EXISTS User";
 //    		stmt.execute(droputable);
     		String utable = "CREATE TABLE IF NOT EXISTS User"
-    				  + "(id varchar(12) PRIMARY KEY, "
+    				  + "(id char(12) PRIMARY KEY, "
     				  + "name varchar(255) NOT NULL, "
-    				  + "date_of_birth DATETIME, "
+    				  + "date_of_birth DATE, "
     				  + "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) "
     				  ;
     		stmt.execute(utable);
     		
+//    		String dropLoginTable = "DROP TABLE IF EXISTS UserCredential";
+//    		stmt.execute(dropLoginTable);
+    		String loginTable = "CREATE TABLE IF NOT EXISTS UserCredential"
+    				+ "(id char(12) PRIMARY KEY, "
+    				+ "user_id char(12) NOT NULL, "
+    				+ "email varchar(255) UNIQUE NOT NULL, "
+    				+ "salt varchar(255) NOT NULL, "
+    				+ "password varchar(255) NOT NULL, "
+    				+ "FOREIGN KEY (user_id) REFERENCES User(id));"
+    				;
+    		stmt.execute(loginTable);
+    		
 //    		String dropReviewTable = "DROP TABLE IF EXISTS UserReview";
 //    		stmt.execute(dropReviewTable);
     		String reviewTable = "CREATE TABLE IF NOT EXISTS UserReview"
-    				+ "(id varchar(12) PRIMARY KEY, "
-    				+ "user_id varchar(12) NOT NULL, "
+    				+ "(user_id char(12) NOT NULL, "
+    				+ "movie_ref varchar(255) NOT NULL, "
     				+ "content MEDIUMTEXT NOT NULL, "
     				+ "rating TINYINT, "
     				+ "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
     				+ "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, "
+    				+ "PRIMARY KEY (user_id, movie_ref), "
     				+ "FOREIGN KEY (user_id) REFERENCES User(id));"
     				;
     		stmt.execute(reviewTable);
@@ -67,24 +80,13 @@ public class DatabaseConnection {
 //    		String dropWatchlistTable = "DROP TABLE IF EXISTS UserMovie";
 //    		stmt.execute(dropWatchlistTable);
     		String watchlistTable = "CREATE TABLE IF NOT EXISTS UserMovie"
-    				+ "(id varchar(12) PRIMARY KEY, "
-    				+ "user_id varchar(12) NOT NULL, "
+    				+ "(user_id char(12) NOT NULL, "
     				+ "movie_ref varchar(255) NOT NULL, "
     				+ "added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+    				+ "PRIMARY KEY (user_id, movie_ref), "
     				+ "FOREIGN KEY (user_id) REFERENCES User(id) on DELETE CASCADE);"
     				;
     		stmt.execute(watchlistTable);
-    		
-//    		String dropLoginTable = "DROP TABLE IF EXISTS UserLogin";
-//    		stmt.execute(dropLoginTable);
-    		String loginTable = "CREATE TABLE IF NOT EXISTS UserLogin"
-    				+ "(id varchar(12) PRIMARY KEY, "
-    				+ "user_id varchar(12) NOT NULL, "
-    				+ "email varchar(255) UNIQUE NOT NULL, "
-    				+ "password varchar(255) NOT NULL, "
-    				+ "FOREIGN KEY (user_id) REFERENCES User(id));"
-    				;
-    		stmt.execute(loginTable);
     		
     		close();
     	} catch (Exception ex) {

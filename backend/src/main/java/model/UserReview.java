@@ -4,13 +4,12 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
+import model.composite_keys.UserReviewId;
 
 public class UserReview {
 	
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(length = 12, updatable = false, nullable = false)
-    private String id;
+	@Embedded
+	UserReviewId id;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false, foreignKey = @ForeignKey(name = "fk_user_review_user"))
@@ -35,25 +34,11 @@ public class UserReview {
     public UserReview() {}
 
     // Parameterized Constructor
-    public UserReview(User user, String content, int rating) {
+    public UserReview(User user, String content, int rating, String movieRef) {
         this.user = user;
         this.content = content;
         this.rating = rating;
-    }
-
-    // Getters and Setters
-    public String getId() {
-        return id;
-    }
-//  public void setId(String id) { /* id is automatically created by Hibernate */
-//      	this.id = id;
-//  }
-
-    public User getUser() {
-    	return user;
-    }
-    public void setUser(User user) {
-    	this.user = user;
+        this.id = new UserReviewId(user.getId(), movieRef);
     }
     
     public String getContent() {
@@ -69,6 +54,13 @@ public class UserReview {
     public void setRating(int rating) {
     	this.rating = rating;
     }
+    
+    public String getMovieRef() {
+    	return this.id.getMovieRef();
+    }
+    public void setMovieRef(String movieRef) {
+    	this.id.setMovieRef(movieRef);
+    }
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
@@ -76,5 +68,9 @@ public class UserReview {
     
     public LocalDateTime getUpdateAt() {
     	return updatedAt;
+    }
+    
+    public User getUser() {
+    	return user;
     }
 }

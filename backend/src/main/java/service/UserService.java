@@ -1,5 +1,4 @@
 package service;
-
 import org.springframework.stereotype.Service;
 
 import model.User;
@@ -14,9 +13,7 @@ public class UserService {
 	}
 	
 	public void deleteUser(String userId) {
-	    User user = userRepository.findById(userId)
-	    		.orElseThrow(() -> new IllegalArgumentException("User with ID " + userId + " does not exist"));
-	    userRepository.delete(user);
+	    userRepository.deleteById(userId);;
 	}
 	
 	public void updateUser(User user) {

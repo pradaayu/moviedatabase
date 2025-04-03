@@ -5,9 +5,9 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import model.UserLogin;
+import model.UserCredential;
 
 @Repository
-public interface UserLoginRepository extends JpaRepository<UserLogin, String> {
-	Optional<UserLogin> findByEmail(String email);
+public interface UserCredentialRepository extends JpaRepository<UserCredential, String> {
+	Optional<UserCredential> findByEmail(String email);
 }

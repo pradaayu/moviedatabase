@@ -3,6 +3,7 @@ package model;
 import jakarta.persistence.*;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 import jakarta.validation.constraints.*;
@@ -12,6 +13,7 @@ import jakarta.validation.constraints.*;
 public class User {
 
     @Id
+    @PrimaryKeyJoinColumn
     @Column(length = 12, nullable = false, updatable = false)
     private String id;
     
@@ -20,26 +22,25 @@ public class User {
     private String name;
 
     @Column(name = "date_of_birth")
-    private LocalDateTime dateOfBirth;
+    private Date dateOfBirth;
 
     @Column(name = "created_at", updatable = false, insertable = false)
-    private Timestamp createdAt;
+    private LocalDateTime createdAt;
     
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private UserLogin userLogin;
+    private UserCredential userCredential;
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserMovie> userMovies;
     
-    // Ensure that user reviews remain upon user deletion
-    @OneToMany(mappedBy = "user", cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = false)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserReview> userReviews;
 
     // Default Constructor
     public User() {}
 
     // Parameterized Constructor
-    public User(String id, String name, LocalDateTime dateOfBirth, Timestamp createdAt) {
+    public User(String id, String name, Date dateOfBirth, LocalDateTime createdAt) {
         this.id = id;
         this.name = name;
         this.dateOfBirth = dateOfBirth;
@@ -63,29 +64,25 @@ public class User {
         this.name = name;
     }
 
-    public LocalDateTime getDateOfBirth() {
+    public Date getDateOfBirth() {
         return dateOfBirth;
     }
 
-    public void setDateOfBirth(LocalDateTime dateOfBirth) {
+    public void setDateOfBirth(Date dateOfBirth) {
         this.dateOfBirth = dateOfBirth;
     }
 
-    public Timestamp getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
     
-    public UserLogin getUserLogin() {
-        return userLogin;
+    public UserCredential getUserCredential() {
+        return userCredential;
     }
 
-    public void setUserLogin(UserLogin userLogin) {
-        this.userLogin = userLogin;
-    }
-    
-    public void addUserLogin(UserLogin login) {
-        this.userLogin = login;
-        login.setUser(this);
+    public void setUserCredential(UserCredential userCredential) {
+        this.userCredential = userCredential;
+        userCredential.setUser(this);
     }
     
     public List<UserMovie> getUserMovies() {
