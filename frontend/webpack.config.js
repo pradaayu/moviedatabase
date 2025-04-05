@@ -18,12 +18,21 @@ module.exports = {
           loader: 'babel-loader',
         },
       },
+      {
+        test: /\.css$/,
+        use: [
+          'style-loader', // Injects CSS into the DOM
+          'css-loader', // Interprets @import and url()
+          'postcss-loader' // Processes CSS with PostCSS (including Tailwind)
+        ]
+      },
     ],
   },
   plugins: [
     new HtmlWebpackPlugin({
       template: './public/index.html',
     }),
+    // Remove the PostCSS plugins from here
   ],
   resolve: {
     // Add TypeScript extensions to resolution
@@ -35,10 +44,10 @@ module.exports = {
     },
     port: 3000,
     proxy: {
-		'/api': {
-		  target: 'http://localhost:8080',
-		  changeOrigin: true,
-		},
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
     }
   },
 };
