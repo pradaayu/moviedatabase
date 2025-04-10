@@ -1,5 +1,6 @@
 package core.security;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -14,6 +15,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig {
 	
+    @Value("${security.public-endpoints}")
+    private String[] publicEndpoints;
+	
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
@@ -27,9 +31,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable()) // Disable CSRF (since we're using cookies)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(
-                		"/api/auth/login", "/api/auth/register", "/api/auth/refresh", "/api/reviews") 
-                .permitAll() // Open access 
+                .requestMatchers(publicEndpoints).permitAll() // Open access 
                 .anyRequest().authenticated() // Protect all other API routes
             );
         

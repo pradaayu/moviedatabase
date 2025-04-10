@@ -1,6 +1,6 @@
 package core.service;
 
-import config.OmdbConfig;
+import core.config.OmdbConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
