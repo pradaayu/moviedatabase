@@ -10,6 +10,9 @@ public class ISODateConverter {
 	 * @return
 	 */
 	public static Date toDate(String isoDate) {
+		if (isoDate.isBlank()) {
+			return null;
+		}
 		Instant instant = Instant.parse(isoDate);
 		Date date = Date.from(instant);
 		return date;

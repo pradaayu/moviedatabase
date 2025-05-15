@@ -1,17 +1,21 @@
 package core.controller;
 
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import core.model.User;
 import core.model.UserCredential;
+import core.model.UserLogin;
 import core.service.UserCredentialService;
 import core.service.UserService;
 import jakarta.servlet.http.Cookie;
@@ -22,13 +26,14 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import core.service.AuthenticationService;
 import utils.HybridClockUUID;
-import utils.ISODateConverter;
 import core.security.JwtUtil;
 import core.utils.ApiResponse;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+	// Auth requirements (coordinated with the front-end):
+	// https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html
 	
     private final AuthenticationService authenticationService;
     private final UserService userService;
@@ -62,9 +67,13 @@ public class AuthController {
         
         User user = new User();
         user.setName(request.getName());
-        user.setDateOfBirth(ISODateConverter.toDate(request.getDateOfBirth()));
+        user.setAvatar(request.getAvatar());
+        String dob = request.getDateOfBirth();
+        if (dob != null && !dob.isBlank()) {
+        	user.setDateOfBirth(LocalDate.parse(dob));	
+        }
         // Set user ID if not already set
-        if (user.getId() == null || user.getId().isEmpty()) {
+        if (user.getId() == null || user.getId().isBlank()) {
             user.setId("u-" + HybridClockUUID.generate());
         }
         
@@ -112,6 +121,12 @@ public class AuthController {
         refreshCookie.setMaxAge(jwtUtil.getRefreshExpirationTime());
         refreshCookie.setHttpOnly(true);
         response.addCookie(refreshCookie);
+        
+        // Create user login
+        long t = System.currentTimeMillis();
+        UserLogin userLogin = new UserLogin(refreshToken, userService.getUser(userId), t, t);
+        authenticationService.login(userLogin);
+        
     	return ResponseEntity.status(HttpStatus.ACCEPTED)
     			.body(new ApiResponse<>(true,"logged in",new AuthResponse(accessToken)));
     }
@@ -122,26 +137,72 @@ public class AuthController {
      * @return a ResponseEntity containing a new access token (String)
      */
     @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse<Object>> refresh(@CookieValue(value = "refreshToken", required = false) String refreshToken) {
+    public ResponseEntity<ApiResponse<Object>> refresh(@CookieValue(value = "refreshToken", required = false) String refreshToken, 
+    		HttpServletResponse response) {
+    	if (refreshToken == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)	
+            		.body(new ApiResponse<>(false, "No token", null));
+    	}
+    	
         // Check for no authorization or invalid token
-    	if (refreshToken == null || !jwtUtil.validateToken(refreshToken)) {
+    	if (!jwtUtil.validateToken(refreshToken)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)	
             		.body(new ApiResponse<>(false, "Invalid or expired refresh token", null));
         }
     	
         String email = jwtUtil.extractEmail(refreshToken);
-        String userId = jwtUtil.extractUserId(refreshToken);
         // Check if user exists
         if (!userCredentialService.findByEmail(email).isPresent()) {
         	// Generic consistent response to not reveal whether user exists or not
         	return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-        	        .body(new ApiResponse<>(false, "Invalid or expired refresh token", null));
+        	        .body(new ApiResponse<>(false, "No valid user found", null));
         }
         
-        String newAccessToken = jwtUtil.generateAccessToken(email, userId);
+        // Get the corresponding active user login
+        UserLogin userLogin = authenticationService.getUserLogin(refreshToken);
+        if  (userLogin == null) {
+        	// Remove refresh token by making the cookie expire
+            Cookie refreshCookie = new Cookie("refreshToken", null);
+            refreshCookie.setHttpOnly(true);
+            refreshCookie.setPath("/api/auth");
+            refreshCookie.setMaxAge(0);
+            response.addCookie(refreshCookie);
+            
+            // Remove the user login from DB
+            authenticationService.logout(refreshToken);
+
+        	return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+        			.body(new ApiResponse<>(false,"No valid user login",null));
+        }
+    	// Generate new access token
+        String userId = jwtUtil.extractUserId(refreshToken);
+    	String newAccessToken = jwtUtil.generateAccessToken(email, userId);
+    	// Update lastUsedAt
+        userLogin.setLastUseTime(System.currentTimeMillis());
+        authenticationService.login(userLogin);
+        
     	return ResponseEntity.status(HttpStatus.ACCEPTED)
     			.body(new ApiResponse<>(true,null,new AuthResponse(newAccessToken)));
     }
+    
+    @PostMapping("/ping")
+    public ResponseEntity<ApiResponse<Object>> ping(@CookieValue(value = "refreshToken", required = false) String refreshToken) {
+        if (refreshToken == null || !jwtUtil.validateToken(refreshToken)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new ApiResponse<>(false, "Invalid or expired token", null));
+        }
+        
+        UserLogin userLogin = authenticationService.getUserLogin(refreshToken);
+        if (userLogin == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new ApiResponse<>(false, "No active session", null));
+        }
+
+        userLogin.setLastUseTime(System.currentTimeMillis());
+        authenticationService.login(userLogin); // update user login in DB
+        return ResponseEntity.ok(new ApiResponse<>(true, "Activity recorded", null));
+    }
+
 
     /**
      * Deletes the refreshToken cookie.
@@ -149,17 +210,25 @@ public class AuthController {
      * (e.g., setting headers, status codes, or writing the response body).
      */
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<Object>> logout(@RequestHeader("Authorization") String authorizationHeader, 
+    public ResponseEntity<ApiResponse<Object>> logout(/*@RequestHeader("Authorization") String authorizationHeader,*/
+    		@CookieValue(value = "refreshToken", required = false) String refreshToken,
     		HttpServletResponse response) {
-    	// To log out, one must be logged-in first
-    	if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ApiResponse<>(false, "Missing or invalid Authorization header", null));
-        }
-    	String accessToken = authorizationHeader.substring(7); // Remove "Bearer "
-    	if (!jwtUtil.validateToken(accessToken)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ApiResponse<>(false, "Invalid access token", null));
+//    	// To log out, one must be logged-in first
+//    	if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+//                    .body(new ApiResponse<>(false, "Missing or invalid Authorization header", null));
+//        }
+//    	String accessToken = authorizationHeader.substring(7); // Remove "Bearer "
+//    	if (!jwtUtil.validateToken(accessToken)) {
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+//                    .body(new ApiResponse<>(false, "Invalid access token", null));
+//        }
+    	
+    	
+        // Check for no authorization or invalid token
+    	if (refreshToken == null || !jwtUtil.validateToken(refreshToken)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)	
+            		.body(new ApiResponse<>(false, "Invalid or expired refresh token", null));
         }
     	
     	// Remove refresh token by making the cookie expire
@@ -168,19 +237,36 @@ public class AuthController {
         refreshCookie.setPath("/api/auth");
         refreshCookie.setMaxAge(0);
         response.addCookie(refreshCookie);
+       
+        // Get the corresponding active user login
+        UserLogin userLogin = authenticationService.getUserLogin(refreshToken);
+        if  (userLogin == null) {
+        	return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+        			.body(new ApiResponse<>(false,"Valid login does not exist",null));
+        } else {
+            // Remove the user login from DB
+            authenticationService.logout(refreshToken);	
+        }
+        
         return ResponseEntity.status(HttpStatus.ACCEPTED)
         		.body(new ApiResponse<>(true, "Logged out successfully", null));
     }
     
     public static class RegisterRequest {
+    	private final List<String> emojis = Arrays.asList("😎", "😄", "🤪", "🐱", "🦸", "🤢", "❤️", "😍", "👧", "💀");
+    	
     	@NotBlank(message = "Name is required")
         private String name;
         
         @Email(message = "Invalid email format")
         private String email;
         
-        @Size(min = 5, message = "Password must be at least 5 characters long")
+        @NotBlank(message = "Avatar is required")
+        private String avatar;
+        
+        @Size(min = 4, max = 18, message = "Password must be between 4 and 18 characters long")
         private String password;
+        
         private String dateOfBirth;
 
         // Getters and setters
@@ -190,6 +276,9 @@ public class AuthController {
         public String getEmail() { return email; }
         public void setEmail(String email) { this.email = email; }
 
+        public String getAvatar() { return emojis.contains(avatar) ? avatar : ""; }
+        public void setAvatar(String avatar) { this.avatar = avatar; }
+        
         public String getPassword() { return password; }
         public void setPassword(String password) { this.password = password; }
 

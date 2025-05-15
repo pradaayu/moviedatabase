@@ -17,7 +17,7 @@ public class UserService {
 	
 	@Transactional
 	public void deleteUser(String userId) {
-	    userRepository.deleteById(userId);;
+	    userRepository.deleteById(userId);
 	}
 	
 	public void updateUser(User user) {
@@ -27,6 +27,10 @@ public class UserService {
     @Transactional
     public void createUser(User user) {
         userRepository.save(user);
+    }
+    
+    public User getUser(String userId) {
+    	return userRepository.findById(userId).orElse(null);
     }
     
     public List<User> getAll() {

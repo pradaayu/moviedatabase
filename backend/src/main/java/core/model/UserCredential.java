@@ -3,7 +3,6 @@ package core.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "UserCredential")
@@ -15,23 +14,21 @@ public class UserCredential {
     
     @Email
     @NotBlank
-    @Column(nullable = false, unique = true, length = 255)
+    @Column(nullable = false, unique = true)
     private String email;
     
-    @Size(min = 5, message = "Password must be at least 5 characters long")
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false)
     private String password;
     
     @OneToOne
-    @JoinColumn(name = "user_id", nullable = false, unique = true, foreignKey = @ForeignKey(name = "fk_user_login_user"))
+    @JoinColumn(name = "user_id", nullable = false, unique = true, foreignKey = @ForeignKey(name = "fk_user_credential_user"))
     private User user;
     
     // Default Constructor
     public UserCredential() {}
 
     // Parameterized Constructor
-    public UserCredential(String id, User user, String email, String password) {
-        this.id = id;
+    public UserCredential(User user, String email, String password) {
         this.user = user;
         this.email = email;
         this.password = password;

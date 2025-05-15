@@ -18,8 +18,8 @@ public class JwtUtil {
     @Value("${jwt.secret.key}")
     private String secretKey; // Instance variable
 
-    private static final int ACCESS_EXPIRATION_TIME = 60 * 2; // in seconds
-    private static final int REFRESH_EXPIRATION_TIME = 60 * 10; // in seconds
+    private static final int ACCESS_EXPIRATION_TIME = 60 * 15; // in seconds
+    private static final int REFRESH_EXPIRATION_TIME = 7 * 24 * 60 * 60; // in seconds
     
     /**
      * @return Secret key object for signing the JWT
