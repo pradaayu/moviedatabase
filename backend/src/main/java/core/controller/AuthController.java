@@ -185,6 +185,14 @@ public class AuthController {
     			.body(new ApiResponse<>(true,null,new AuthResponse(newAccessToken)));
     }
     
+    
+	/**
+	 * Records user activity by updating the last used time of an active session.
+	 * Validates the refresh token and ensures there is an active user login.
+	 * @param refreshToken the refresh token sent automatically via cookies
+	 * @return a ResponseEntity containing a success message if activity is recorded successfully,
+	 * or an error message with HTTP status 401 (Unauthorized) if the token is invalid or no active session exists
+	 */
     @PostMapping("/ping")
     public ResponseEntity<ApiResponse<Object>> ping(@CookieValue(value = "refreshToken", required = false) String refreshToken) {
         if (refreshToken == null || !jwtUtil.validateToken(refreshToken)) {

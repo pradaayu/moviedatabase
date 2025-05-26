@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuthContext } from "./auth/AuthProvider";
-import zxcvbn from "zxcvbn"; // TODO!
+import zxcvbn from "zxcvbn";
 
 import Predicates, { Predicate, yearsDiffFromToday } from "./validation/Predicates";
 import { DataEntryElement, validateFormField } from "./validation/Validation";
@@ -131,6 +131,17 @@ export function RegisterPage() {
 		}
 	}, []);
 	
+	const pswEval = useMemo(() => formData.password ? zxcvbn(formData.password) : null, [formData.password]);
+	console.log("pswEval", pswEval);
+	
+	const strengthLevels = [
+		{ label: 'Too Weak', color: 'bg-red-500', text: 'text-red-500' },
+		{ label: 'Weak', color: 'bg-orange-500', text: 'text-orange-500' },
+		{ label: 'Fair', color: 'bg-yellow-400', text: 'text-yellow-500' },
+		{ label: 'Good', color: 'bg-green-400', text: 'text-green-500' },
+		{ label: 'Strong', color: 'bg-green-600', text: 'text-green-600' },
+	];
+	
 	const validator: Validator = useMemo(() => {
 		let v = new Validator();
 		for (let r of regFormRules) {
@@ -207,8 +218,6 @@ export function RegisterPage() {
 		}
 
 	};
-	
-	console.log((formData));
 
 	return (
 		<div className="min-h-screen bg-black flex items-center justify-center px-4">
@@ -331,7 +340,7 @@ export function RegisterPage() {
 								id="password"
 								name="password"
 								value={formData.password}
-								placeholder="Enter your password"
+								placeholder="Set a password"
 								onChange={e => { setFormData({ ...formData, password: e.target.value }); validate([e.target]) }}
 							/>
 							<button type="button" className="h-5 w-5 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
@@ -344,6 +353,35 @@ export function RegisterPage() {
 						{(fieldErrors.password || []).map(err => <div><Hint msg={err} /></div>)}
 					</div>
 
+					{formData.password && pswEval && (
+						<div className="mt-3">
+							{/* Strength Bar */}
+							<div className="w-full h-2 bg-gray-200 rounded">
+								<div
+									className={`h-full rounded ${strengthLevels[pswEval.score].color}`}
+									style={{ width: `${(pswEval.score + 1) * 20}%` }}
+								/>
+							</div>
+
+							{/* Strength Label */}
+							<p className={`mt-1 text-sm font-medium ${strengthLevels[pswEval.score].text}`}>
+								{strengthLevels[pswEval.score].label}
+							</p>
+
+							{/* Optional zxcvbn feedback */}
+							{pswEval.feedback.warning && (
+								<p className="text-xs text-gray-500 mt-1">{pswEval.feedback.warning}</p>
+							)}
+							{pswEval.feedback.suggestions.length > 0 && (
+								<ul className="text-xs text-gray-500 mt-1 list-disc list-inside">
+									{pswEval.feedback.suggestions.map((sugg, index) => (
+										<li key={index}>{sugg}</li>
+									))}
+								</ul>
+							)}
+						</div>
+					)}
+					
 					<button
 						type="submit"
 						className="w-full bg-lime-500 text-black py-3 rounded-md font-semibold hover:bg-lime-600 transition duration-300"
