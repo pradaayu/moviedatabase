@@ -1,4 +1,4 @@
-# Film- und Serienplattform: Eine OMDB-basierte Webanwendung
+	# Film- und Serienplattform: Eine OMDB-basierte Webanwendung
 
 ## Projektübersicht
 

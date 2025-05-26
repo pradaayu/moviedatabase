@@ -1,0 +1,13 @@
+./backend/target/
+/backend/target/
+./frontend/node_modules
+/frontend/node_modules
+./backend/dependency-reduced-pom.xml
+/backend/dependency-reduced-pom.xml
+./backend/.env
+/backend/.env
+./backend/src/main/resources/application.properties
+/backend/src/main/resources/application.properties
+/backend/.classpath
+/backend/src/main/resources
+/backend/target
