@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuthContext } from "./auth/AuthProvider";
 import { AxiosError } from "axios";
@@ -6,6 +6,14 @@ import { ApiResponse } from "./types";
 
 
 export function LoginPage() {
+	const isMounted = useRef(true);
+	useEffect(() => {
+		isMounted.current = true;
+		return () => {
+			isMounted.current = false;
+		};
+	}, []);
+	
 	const { login } = useAuthContext();
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -14,22 +22,26 @@ export function LoginPage() {
 	const [password, setPassword] = useState("");
 	const [showPassword, setShowPassword] = useState(false);
 	const [authError, setAuthError] = useState("");
+	const [idle, setIdle] = useState(true);
 
-	const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
+	const handleLogin = async () => {
 		setAuthError("");
 
 		try {
 			await login(email, password);
-			let url = location.state?.from ?? "/";
-			if (url.endsWith("register") || url.endsWith("login")) {
-				url = "/"
+			if (isMounted.current) {
+				let url = location.state?.from ?? "/";
+				if (url.endsWith("register") || url.endsWith("login")) {
+					url = "/"
+				}
+				navigate(url); // After successful login, navigate to the previous page (if not '/register' nor '/login')	
 			}
-			navigate(url); // After successful login, navigate to the previous page (if not '/register' nor '/login')
 		} catch (err) {
-			let loginErr = err as AxiosError & { response: { data: string | ApiResponse } };
-			let msg = typeof loginErr.response.data != "string" ? loginErr.response.data.message : "⚠️ Network error.";
-			setAuthError(msg);
+			if (isMounted.current) {
+				let loginErr = err as AxiosError & { response: { data: string | ApiResponse } };
+				let msg = typeof loginErr.response.data != "string" ? loginErr.response.data.message : "⚠️ Network error.";
+				setAuthError(msg);	
+			}
 		}
 	};
 
@@ -88,12 +100,13 @@ export function LoginPage() {
 						</div>
 					</div>
 
-					<button
-						type="submit"
+					<button type="button" aria-label="login" disabled={!idle}
 						className="w-full bg-lime-500 text-black py-3 rounded-md font-semibold hover:bg-lime-600 transition duration-300"
-					>
-						SIGN IN
-					</button>
+						onClick={e => {
+							setIdle(false);
+							handleLogin().finally(() => isMounted.current && setIdle(true));
+						}}>
+					SIGN IN </button>
 				</form>
 
 				{authError && (

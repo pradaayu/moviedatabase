@@ -8,11 +8,8 @@ import { DataEntryElement, validateFormField } from "./validation/Validation";
 import Validator, { Rule } from "./validation/Validator";
 import Hint from "./validation/Hint";
 import { hintMapForConstraintAPI } from "./validation/hintsMapForConstraintAPI";
-
 import emojis from "./assets/emojis.json";
 
-
-type RegStatus = "idle" | "pending" | "success" | "error";
 export type User = {
 	avatar: string,
 	name: string,
@@ -23,10 +20,7 @@ export type UserCredential = {
 	password: string,
 }
 type RegForm = User & UserCredential;
-
 type RegFormRule = (Rule & { field: keyof RegForm });
-type FieldError = Partial<Record<keyof RegForm, string[] | undefined>>;
-type ErrForm = Map<DataEntryElement, string[]>;
 
 const regFormRules: RegFormRule[] = [
 	{ 
@@ -109,12 +103,20 @@ const regFormRules: RegFormRule[] = [
 ];
 
 export function RegisterPage() {
+	const isMounted = useRef(true);
+	useEffect(() => {
+		isMounted.current = true;
+		return () => {
+			isMounted.current = false;
+		};
+	}, []);
+	
 	const { login } = useAuthContext();
 	const navigate = useNavigate();
 	const [showPassword, setShowPassword] = useState(false);
 	const [fieldErrors, setFieldErrors] = useState({} as Partial<Record<keyof RegForm, string[]>>);
 	const [queryError, setQueryError] = useState("");
-	const [status, setStatus] = useState("idle" as RegStatus);
+	const [idle, setIdle] = useState(true);
 
 	const form: React.MutableRefObject<HTMLFormElement|null> = useRef(null);
 	const formElements: React.MutableRefObject<DataEntryElement[]> = useRef([]);
@@ -132,8 +134,6 @@ export function RegisterPage() {
 	}, []);
 	
 	const pswEval = useMemo(() => formData.password ? zxcvbn(formData.password) : null, [formData.password]);
-	console.log("pswEval", pswEval);
-	
 	const strengthLevels = [
 		{ label: 'Too Weak', color: 'bg-red-500', text: 'text-red-500' },
 		{ label: 'Weak', color: 'bg-orange-500', text: 'text-orange-500' },
@@ -168,9 +168,8 @@ export function RegisterPage() {
 		return isValid;
 	}
 
-	const handleRegister = async (e: React.FormEvent) => {
-		e.preventDefault();
-		if (status == "pending") {
+	const handleRegister = async () => {
+		if (!isMounted.current || !idle) {
 			return;
 		}
 
@@ -179,7 +178,6 @@ export function RegisterPage() {
 			return;
 		}
 
-		setStatus("pending");
 		setQueryError("");
 		setFieldErrors({});
 
@@ -197,24 +195,29 @@ export function RegisterPage() {
 				try {
 					// Automatically login the user after registration
 					await login(formData.email, formData.password);
-					setStatus("success");
-					navigate("/");
+					if (isMounted.current) {
+						navigate("/");
+					}
 				} catch (loginErr) {
-					setQueryError("Registered, but auto-login failed. Please log in manually.");
+					if (isMounted.current) {
+						setQueryError("Registered, but auto-login failed. Please log in manually.");
+					}
 				}
 			} else {
 				// Handle field-specific or general errors
 				let data = await res.json();
-				setStatus("error");
-				if (data.code === "USER_EXISTS") {
-					setFieldErrors({ email: ["This email is already registered."] });
-				} else {
-					setQueryError(data.message || "Registration failed.");
+				if (isMounted.current) {
+					if (data.code === "USER_EXISTS") {
+						setFieldErrors({ email: ["This email is already registered."] });
+					} else {
+						setQueryError(data.message || "Registration failed.");
+					}					
 				}
 			}
 		} catch (err) {
-			setStatus("error");
-			setQueryError("⚠️ Network error.");
+			if (isMounted.current) {
+				setQueryError("⚠️ Network error.");	
+			}
 		}
 
 	};
@@ -380,19 +383,19 @@ export function RegisterPage() {
 								</ul>
 							)}
 						</div>
-					)}
+					)}					
 					
-					<button
-						type="submit"
+					<button type="button" aria-label="Submit registration form" disabled={!idle}
 						className="w-full bg-lime-500 text-black py-3 rounded-md font-semibold hover:bg-lime-600 transition duration-300"
-						aria-label="Submit registration form"
-					>
-						SIGN UP
-					</button>
+						onClick={e => {
+							setIdle(false);
+							handleRegister().finally(() => isMounted.current && setIdle(true));
+						}}	
+					>SIGN UP</button>
 				</form>
 
 				{queryError && (
-					<div style={{ marginTop: "1rem", color: status == "error" ? "red" : "green" }}>
+					<div style={{ marginTop: "1rem", color: "red" }}>
 						{queryError}
 					</div>
 				)}
